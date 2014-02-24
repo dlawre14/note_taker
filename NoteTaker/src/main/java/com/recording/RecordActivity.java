@@ -17,6 +17,7 @@ import com.notetaker.CustomPreferences;
 import com.notetaker.R;
 
 import java.io.File;
+import java.io.FileNotFoundException;
 import java.io.FileOutputStream;
 import java.io.IOException;
 import java.util.regex.Pattern;
@@ -33,6 +34,8 @@ public class RecordActivity extends Activity {
     private MediaRecorder mr;
     private MediaPlayer mp;
     private File direct;
+    private File fout;
+    private FileOutputStream fos;
 
     private static String stringParser(String input) {
         String output = "";
@@ -81,8 +84,9 @@ public class RecordActivity extends Activity {
         mp = new MediaPlayer();
         mr = new MediaRecorder();
 
-        direct = new File(getDir(Environment.DIRECTORY_ALARMS, Context.MODE_PRIVATE).getAbsolutePath() + File.separator + "recordings");
+        direct = new File(getDir(Environment.DIRECTORY_DOCUMENTS, Context.MODE_PRIVATE).getAbsolutePath() + File.separator + "recordings");
         direct.mkdir();
+
     }
 
     public void startRecord(View view) {
@@ -97,6 +101,16 @@ public class RecordActivity extends Activity {
         else {
             mr.stop();
             mr.reset();
+
+            try { //TODO Currently untested
+                fos = new FileOutputStream(fout);
+                fos.close();
+            } catch (FileNotFoundException e) {
+                Log.e("record", "File does not exist!");
+            } catch (IOException e) {
+                Log.e("record", "IOException in file stream");
+            }
+
             try {
                 mp.setDataSource(direct.getAbsolutePath() + "/test.3gp");
                 mp.prepare();
@@ -116,7 +130,8 @@ public class RecordActivity extends Activity {
 
         mr.setAudioEncoder(MediaRecorder.AudioEncoder.AMR_NB);
 
-        mr.setOutputFile(direct.getAbsolutePath()+ "/test.3gp");
+        fout = new File(direct.getAbsolutePath() + "/test.3gp");
+        mr.setOutputFile(fout.getAbsolutePath());
 
         try {
             mr.prepare();
